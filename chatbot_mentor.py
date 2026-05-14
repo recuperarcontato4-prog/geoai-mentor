@@ -3,7 +3,7 @@
 # ============================================================
 
 # -------- IMPORTS --------
-import os
+import sys
 from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
@@ -16,17 +16,27 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 # -------- CONFIGURAÇÃO DA API --------
 load_dotenv()
 
-modelo = ChatOpenAI(
-    model="gpt-3.5-turbo",
-    temperature=0.7
-)
+try:
+    modelo = ChatOpenAI(
+        model="gpt-3.5-turbo",
+        temperature=0.7
+    )
+except Exception as e:
+    print(f"❌ Erro ao inicializar o modelo: {e}")
+    print("💡 Verifique se OPENAI_API_KEY está definida no arquivo .env")
+    sys.exit(1)
 
 
 # ============================================================
 # ETAPA 1 — Conexão Básica (sem memória, sem persona)
 # ============================================================
-def etapa_1_basico():
-    """Demonstra que SEM memória, a 2ª pergunta perde contexto."""
+def etapa_1_basico() -> None:
+    """
+    Demonstra funcionamento SEM memória de sessão.
+
+    Executa duas perguntas sequenciais de forma independente,
+    mostrando como o modelo perde contexto entre chamadas.
+    """
     perguntas = [
         "Eu sou geofísico e quero migrar para a área de dados. Qual linguagem de programação devo aprender primeiro?",
         "E que tipo de projeto de portfólio eu poderia criar usando essa linguagem?"
@@ -37,9 +47,12 @@ def etapa_1_basico():
     print("=" * 60)
 
     for pergunta in perguntas:
-        resposta = modelo.invoke(pergunta)
-        print(f"\n🧑 Pergunta: {pergunta}")
-        print(f"🤖 Resposta: {resposta.content}")
+        try:
+            resposta = modelo.invoke(pergunta)
+            print(f"\n🧑 Pergunta: {pergunta}")
+            print(f"🤖 Resposta: {resposta.content}")
+        except Exception as e:
+            print(f"❌ Erro na chamada à API: {e}")
 
 
 # ============================================================
@@ -61,11 +74,22 @@ cadeia = prompt | modelo | StrOutputParser()
 # ============================================================
 # ETAPA 3 — Memória de Sessão (RunnableWithMessageHistory)
 # ============================================================
-memoria_sessoes = {}
+memoria_sessoes: dict[str, InMemoryChatMessageHistory] = {}
 
 
 def obter_historico_por_sessao(session_id: str) -> InMemoryChatMessageHistory:
-    """Padrão singleton: garante 1 histórico por session_id."""
+    """
+    Retorna o histórico de mensagens para a sessão informada.
+
+    Implementa padrão singleton: cria um novo histórico apenas se
+    o session_id ainda não existir no dicionário de sessões.
+
+    Args:
+        session_id: Identificador único da conversa.
+
+    Returns:
+        Objeto de histórico de mensagens associado à sessão.
+    """
     if session_id not in memoria_sessoes:
         memoria_sessoes[session_id] = InMemoryChatMessageHistory()
     return memoria_sessoes[session_id]
@@ -82,7 +106,8 @@ cadeia_com_memoria = RunnableWithMessageHistory(
 # ============================================================
 # LOOP PRINCIPAL
 # ============================================================
-def main():
+def main() -> None:
+    """Executa a demonstração completa: sem memória vs com memória."""
     perguntas = [
         "Eu sou geofísico e quero migrar para a área de dados. Qual linguagem de programação devo aprender primeiro?",
         "E que tipo de projeto de portfólio eu poderia criar usando essa linguagem?"
@@ -100,12 +125,15 @@ def main():
     config = {"configurable": {"session_id": "sessao_geocientista_01"}}
 
     for pergunta in perguntas:
-        resposta = cadeia_com_memoria.invoke(
-            {"query": pergunta},
-            config=config
-        )
-        print(f"\n🧑 Você: {pergunta}")
-        print(f"🤖 GeoAI Mentor: {resposta}")
+        try:
+            resposta = cadeia_com_memoria.invoke(
+                {"query": pergunta},
+                config=config
+            )
+            print(f"\n🧑 Você: {pergunta}")
+            print(f"🤖 GeoAI Mentor: {resposta}")
+        except Exception as e:
+            print(f"❌ Erro na cadeia com memória: {e}")
 
 
 if __name__ == "__main__":
