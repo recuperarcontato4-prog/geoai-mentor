@@ -29,7 +29,9 @@ if not api_key.startswith("sk-"):
 
 modelo = ChatOpenAI(
     model="gpt-3.5-turbo",
-    temperature=0.7
+    temperature=0.7,
+    request_timeout=30,
+    max_retries=2,
 )
 
 
