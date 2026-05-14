@@ -50,8 +50,11 @@ pip install -r requirements.txt
 
 # 4. Configure sua chave da OpenAI
 cp .env.example .env
-# Edite o .env e cole sua chave
+chmod 600 .env
+# Edite o .env e cole sua chave (https://platform.openai.com/api-keys)
 ```
+
+> **Seguranca:** Nunca commite o `.env` com sua chave real. Se expor acidentalmente, revogue imediatamente no painel da OpenAI.
 
 ## Como executar
 
@@ -106,6 +109,13 @@ Resposta: "Análise de dados sísmicos, visualização geoespacial,
 | Memória de sessão | `RunnableWithMessageHistory` + `InMemoryChatMessageHistory` |
 | Gerenciamento de secrets | `.env` + `python-dotenv` + `.gitignore` |
 
-## Licença
+## Privacidade
+
+Este chatbot envia suas perguntas para os servidores da OpenAI para processamento.
+Nao compartilhe informacoes pessoais sensiveis (CPF, senhas, dados bancarios) durante a conversa.
+
+Consulte: [Politica de Privacidade da OpenAI](https://openai.com/privacy/)
+
+## Licenca
 
 MIT

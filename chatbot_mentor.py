@@ -3,6 +3,7 @@
 # ============================================================
 
 # -------- IMPORTS --------
+import os
 import sys
 from dotenv import load_dotenv
 
@@ -16,15 +17,20 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 # -------- CONFIGURAÇÃO DA API --------
 load_dotenv()
 
-try:
-    modelo = ChatOpenAI(
-        model="gpt-3.5-turbo",
-        temperature=0.7
-    )
-except Exception as e:
-    print(f"❌ Erro ao inicializar o modelo: {e}")
-    print("💡 Verifique se OPENAI_API_KEY está definida no arquivo .env")
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key or api_key == "sua_chave_secreta_aqui":
+    print("❌ OPENAI_API_KEY não encontrada ou é o placeholder padrão.")
+    print("💡 Edite o arquivo .env com sua chave real da OpenAI.")
     sys.exit(1)
+
+if not api_key.startswith("sk-"):
+    print("❌ OPENAI_API_KEY não segue o formato esperado (deve começar com 'sk-').")
+    sys.exit(1)
+
+modelo = ChatOpenAI(
+    model="gpt-3.5-turbo",
+    temperature=0.7
+)
 
 
 # ============================================================
