@@ -3,6 +3,7 @@
 # ============================================================
 
 # -------- IMPORTS --------
+import logging
 import os
 import sys
 from dotenv import load_dotenv
@@ -13,18 +14,20 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
+log = logging.getLogger(__name__)
+
 
 # -------- CONFIGURAÇÃO DA API --------
 load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key or api_key == "sua_chave_secreta_aqui":
-    print("❌ OPENAI_API_KEY não encontrada ou é o placeholder padrão.")
-    print("💡 Edite o arquivo .env com sua chave real da OpenAI.")
+    log.error("OPENAI_API_KEY não encontrada ou é o placeholder padrão.")
+    log.error("Edite o arquivo .env com sua chave real da OpenAI.")
     sys.exit(1)
 
 if not api_key.startswith("sk-"):
-    print("❌ OPENAI_API_KEY não segue o formato esperado (deve começar com 'sk-').")
+    log.error("OPENAI_API_KEY não segue o formato esperado (deve começar com 'sk-').")
     sys.exit(1)
 
 modelo = ChatOpenAI(
@@ -50,17 +53,17 @@ def etapa_1_basico() -> None:
         "E que tipo de projeto de portfólio eu poderia criar usando essa linguagem?"
     ]
 
-    print("=" * 60)
-    print("ETAPA 1 — Sem Memória (cada pergunta é independente)")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ETAPA 1 — Sem Memória (cada pergunta é independente)")
+    log.info("=" * 60)
 
     for pergunta in perguntas:
         try:
             resposta = modelo.invoke(pergunta)
-            print(f"\n🧑 Pergunta: {pergunta}")
-            print(f"🤖 Resposta: {resposta.content}")
+            log.info("Pergunta: %s", pergunta)
+            log.info("Resposta: %s", resposta.content)
         except Exception as e:
-            print(f"❌ Erro na chamada à API: {e}")
+            log.error("Erro na chamada à API: %s", e)
 
 
 # ============================================================
@@ -125,10 +128,9 @@ def main() -> None:
     etapa_1_basico()
 
     # --- DEPOIS: com memória ---
-    print("\n")
-    print("=" * 60)
-    print("ETAPA 3 — Com Memória (conversa contínua)")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ETAPA 3 — Com Memória (conversa contínua)")
+    log.info("=" * 60)
 
     config = {"configurable": {"session_id": "sessao_geocientista_01"}}
 
@@ -138,11 +140,12 @@ def main() -> None:
                 {"query": pergunta},
                 config=config
             )
-            print(f"\n🧑 Você: {pergunta}")
-            print(f"🤖 GeoAI Mentor: {resposta}")
+            log.info("Você: %s", pergunta)
+            log.info("GeoAI Mentor: %s", resposta)
         except Exception as e:
-            print(f"❌ Erro na cadeia com memória: {e}")
+            log.error("Erro na cadeia com memória: %s", e)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     main()
